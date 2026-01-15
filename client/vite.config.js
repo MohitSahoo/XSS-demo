@@ -6,15 +6,7 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
-      '/reflected': {
-        target: 'http://localhost:3001',
-        changeOrigin: true,
-      },
-      '/stored': {
-        target: 'http://localhost:3001',
-        changeOrigin: true,
-      },
-      '/attacker': {
+      '/api': {
         target: 'http://localhost:3001',
         changeOrigin: true,
       },
