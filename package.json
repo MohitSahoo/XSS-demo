@@ -1,0 +1,19 @@
+{
+  "name": "xss-security-assessment",
+  "version": "1.0.0",
+  "description": "Full-stack XSS security assessment MVP - Vulnerable and Secure modes",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && node index.js",
+    "client": "cd client && npm run dev",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "keywords": ["xss", "security", "vulnerability", "assessment"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
+

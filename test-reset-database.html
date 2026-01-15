@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Reset Database</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        button { padding: 10px 20px; margin: 10px; border: none; border-radius: 4px; cursor: pointer; }
+        .reset-btn { background: #dc3545; color: white; font-weight: bold; }
+        .test-btn { background: #007bff; color: white; }
+        .result { margin: 20px 0; padding: 15px; border-radius: 4px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗑️ Reset Database Test</h1>
+        <p>This page tests the reset database functionality for the XSS platform.</p>
+        
+        <div>
+            <h3>Test Actions:</h3>
+            <button class="test-btn" onclick="addTestComment()">1. Add Test Comment</button>
+            <button class="test-btn" onclick="checkData()">2. Check Current Data</button>
+            <button class="reset-btn" onclick="resetDatabase()">3. 🗑️ Reset Database</button>
+            <button class="test-btn" onclick="checkDataAfterReset()">4. Verify Reset</button>
+        </div>
+        
+        <div id="result"></div>
+        
+        <div>
+            <h3>Instructions:</h3>
+            <ol>
+                <li>Make sure the server is running on localhost:3001</li>
+                <li>Click "Add Test Comment" to create some data</li>
+                <li>Click "Check Current Data" to see what's in the database</li>
+                <li>Click "Reset Database" to clear everything</li>
+                <li>Click "Verify Reset" to confirm all data is gone</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001';
+        
+        function showResult(message, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+        
+        async function addTestComment() {
+            try {
+                showResult('Adding test comment...', 'info');
+                const response = await fetch(`${API_BASE}/stored/comment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-security-mode': 'vulnerable'
+                    },
+                    body: JSON.stringify({
+                        text: '<script>alert("Test XSS payload for reset test")</script>',
+                        mode: 'vulnerable'
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showResult('✅ Test comment added successfully!', 'success');
+                } else {
+                    showResult('❌ Failed to add comment: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showResult('❌ Error adding comment: ' + error.message, 'error');
+            }
+        }
+        
+        async function checkData() {
+            try {
+                showResult('Checking current data...', 'info');
+                
+                // Check comments
+                const commentsResponse = await fetch(`${API_BASE}/stored/comments`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+                const comments = await commentsResponse.json();
+                
+                // Check exploit logs
+                const logsResponse = await fetch(`${API_BASE}/exploits/logs`);
+                const logs = await logsResponse.json();
+                
+                // Check attacker data
+                const attackerResponse = await fetch(`${API_BASE}/attacker/data`);
+                const attackerData = await attackerResponse.json();
+                
+                const summary = `
+                    <h4>📊 Current Database Status:</h4>
+                    <ul>
+                        <li><strong>Comments:</strong> ${comments.length} entries</li>
+                        <li><strong>Exploit Logs:</strong> ${logs.length} entries</li>
+                        <li><strong>Attacker Data:</strong> ${attackerData.length} entries</li>
+                    </ul>
+                    <p><strong>Total Records:</strong> ${comments.length + logs.length + attackerData.length}</p>
+                `;
+                
+                showResult(summary, comments.length > 0 || logs.length > 0 || attackerData.length > 0 ? 'info' : 'success');
+            } catch (error) {
+                showResult('❌ Error checking data: ' + error.message, 'error');
+            }
+        }
+        
+        async function resetDatabase() {
+            if (!confirm('⚠️ This will permanently delete ALL data. Are you sure?')) {
+                return;
+            }
+            
+            try {
+                showResult('🗑️ Resetting database...', 'info');
+                const response = await fetch(`${API_BASE}/stored/reset-database`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showResult(`✅ ${result.message}`, 'success');
+                } else {
+                    showResult('❌ Failed to reset database: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showResult('❌ Error resetting database: ' + error.message, 'error');
+            }
+        }
+        
+        async function checkDataAfterReset() {
+            await checkData();
+        }
+        
+        // Auto-check data on page load
+        window.onload = function() {
+            showResult('Ready to test reset database functionality!', 'info');
+        };
+    </script>
+</body>
+</html>

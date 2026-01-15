@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Clear Comments Display</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        button { padding: 10px 20px; margin: 10px; border: none; border-radius: 4px; cursor: pointer; }
+        .add-btn { background: #28a745; color: white; }
+        .clear-btn { background: #dc3545; color: white; }
+        .reset-btn { background: #6f42c1; color: white; font-weight: bold; }
+        .result { margin: 20px 0; padding: 15px; border-radius: 4px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        .comments-box { border: 2px solid #ddd; padding: 15px; margin: 20px 0; border-radius: 8px; min-height: 100px; }
+        .comment-item { background: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 4px; border-left: 4px solid #007bff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Clear Comments Display</h1>
+        <p>This page tests that the reset database and clear comments buttons properly clear the comments display box.</p>
+        
+        <div>
+            <h3>Test Workflow:</h3>
+            <button class="add-btn" onclick="addTestComments()">1. Add Test Comments</button>
+            <button class="clear-btn" onclick="clearComments()">2. Clear Comments</button>
+            <button class="reset-btn" onclick="resetDatabase()">3. Reset Database</button>
+        </div>
+        
+        <div id="result"></div>
+        
+        <div class="comments-box" id="commentsDisplay">
+            <h4>Comments Display (simulated):</h4>
+            <div id="commentsList">
+                <p style="color: #666; font-style: italic;">No comments loaded yet...</p>
+            </div>
+        </div>
+        
+        <div>
+            <h3>Expected Behavior:</h3>
+            <ul>
+                <li><strong>Add Test Comments:</strong> Should populate the comments display box</li>
+                <li><strong>Clear Comments:</strong> Should immediately clear the display box and show "No comments" message</li>
+                <li><strong>Reset Database:</strong> Should clear the display box and all related data</li>
+            </ul>
+            
+            <h3>Test on Real App:</h3>
+            <ol>
+                <li>Go to <a href="http://localhost:3000/stored" target="_blank">http://localhost:3000/stored</a></li>
+                <li>Submit a few test comments with XSS payloads</li>
+                <li>Verify comments appear in the display box below the buttons</li>
+                <li>Click "🗑️ Clear Comments" - comments should disappear immediately</li>
+                <li>Add more comments, then click "🗑️ Reset Database" - everything should clear</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001';
+        let simulatedComments = [];
+        
+        function showResult(message, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+        
+        function updateCommentsDisplay() {
+            const commentsList = document.getElementById('commentsList');
+            if (simulatedComments.length === 0) {
+                commentsList.innerHTML = '<p style="color: #666; font-style: italic;">No comments stored yet. Add some comments to see them here!</p>';
+            } else {
+                commentsList.innerHTML = simulatedComments.map((comment, index) => 
+                    `<div class="comment-item">
+                        <strong>Comment ${index + 1}:</strong> ${comment.text}
+                        <br><small>Added: ${comment.timestamp}</small>
+                    </div>`
+                ).join('');
+            }
+        }
+        
+        async function addTestComments() {
+            try {
+                showResult('Adding test comments to database and display...', 'info');
+                
+                // Simulate adding comments to display
+                const testComments = [
+                    { text: '<script>alert("Test XSS 1")</script>', timestamp: new Date().toLocaleString() },
+                    { text: '<img src=x onerror=alert("Test XSS 2")>', timestamp: new Date().toLocaleString() },
+                    { text: 'Normal comment text', timestamp: new Date().toLocaleString() }
+                ];
+                
+                // Add to real database
+                for (const comment of testComments) {
+                    await fetch(`${API_BASE}/stored/comment`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-security-mode': 'vulnerable'
+                        },
+                        body: JSON.stringify({
+                            text: comment.text,
+                            mode: 'vulnerable'
+                        })
+                    });
+                }
+                
+                // Update simulated display
+                simulatedComments = testComments;
+                updateCommentsDisplay();
+                
+                showResult('✅ Test comments added! Check the display box above.', 'success');
+            } catch (error) {
+                showResult('❌ Error adding comments: ' + error.message, 'error');
+            }
+        }
+        
+        async function clearComments() {
+            try {
+                showResult('🗑️ Clearing comments from database and display...', 'info');
+                
+                // Clear from real database
+                await fetch(`${API_BASE}/stored/comments`, {
+                    method: 'DELETE'
+                });
+                
+                // Immediately clear simulated display
+                simulatedComments = [];
+                updateCommentsDisplay();
+                
+                showResult('✅ Comments cleared! Display box should now be empty.', 'success');
+            } catch (error) {
+                showResult('❌ Error clearing comments: ' + error.message, 'error');
+            }
+        }
+        
+        async function resetDatabase() {
+            if (!confirm('⚠️ This will reset the entire database. Continue?')) {
+                return;
+            }
+            
+            try {
+                showResult('🗑️ Resetting database and clearing display...', 'info');
+                
+                // Reset real database
+                await fetch(`${API_BASE}/stored/reset-database`, {
+                    method: 'DELETE'
+                });
+                
+                // Immediately clear simulated display
+                simulatedComments = [];
+                updateCommentsDisplay();
+                
+                showResult('✅ Database reset complete! All data cleared from display.', 'success');
+            } catch (error) {
+                showResult('❌ Error resetting database: ' + error.message, 'error');
+            }
+        }
+        
+        // Initialize display
+        window.onload = function() {
+            updateCommentsDisplay();
+            showResult('Ready to test comment clearing functionality!', 'info');
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Redirect</title>
+</head>
+<body>
+    <h1>Testing URL Redirect</h1>
+    <p>Click the link below to test the encoded URL:</p>
+    <a href="http://localhost:3000/dom#%3Cimg%20src=x%20onerror=%22alert('Image%20XSS')%22%3E" target="_blank">
+        Test Encoded URL
+    </a>
+    
+    <p>Or try this unencoded version:</p>
+    <a href="http://localhost:3000/dom#<img src=x onerror=alert('test')>" target="_blank">
+        Test Unencoded URL
+    </a>
+    
+    <script>
+        // Auto-redirect after 2 seconds for testing
+        setTimeout(() => {
+            window.location.href = "http://localhost:3000/dom#%3Cimg%20src=x%20onerror=%22alert('Image%20XSS')%22%3E";
+        }, 3000);
+    </script>
+</body>
+</html>

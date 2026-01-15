@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>URL Debug Test</title>
+</head>
+<body>
+    <h1>URL Debug Test</h1>
+    <div id="output"></div>
+    
+    <script>
+        function debugUrl() {
+            const hash = window.location.hash.slice(1);
+            const decoded = hash ? decodeURIComponent(hash) : '';
+            
+            document.getElementById('output').innerHTML = `
+                <h2>URL Analysis:</h2>
+                <p><strong>Full URL:</strong> ${window.location.href}</p>
+                <p><strong>Raw Hash:</strong> ${hash}</p>
+                <p><strong>Decoded Hash:</strong> ${decoded}</p>
+                <p><strong>Test Payload:</strong> ${decoded === '<img src=x onerror="alert(\'Image XSS\')">' ? 'MATCH' : 'NO MATCH'}</p>
+            `;
+        }
+        
+        debugUrl();
+        window.addEventListener('hashchange', debugUrl);
+    </script>
+</body>
+</html>

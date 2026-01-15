@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DOM XSS Test</title>
+</head>
+<body>
+    <h1>DOM XSS Test Page</h1>
+    <p>Test the DOM XSS functionality:</p>
+    
+    <h2>Test Links:</h2>
+    <ul>
+        <li><a href="http://localhost:3000/dom#<script>alert('Hash XSS')</script>" target="_blank">Hash-based XSS</a></li>
+        <li><a href="http://localhost:3000/dom?name=<script>alert('Query XSS')</script>" target="_blank">Query-based XSS</a></li>
+        <li><a href="http://localhost:3000/dom#<img src=x onerror=alert('Image XSS')>" target="_blank">Image onerror XSS</a></li>
+        <li><a href="http://localhost:3000/dom?name=<svg onload=alert('SVG XSS')>" target="_blank">SVG onload XSS</a></li>
+    </ul>
+    
+    <h2>Instructions:</h2>
+    <ol>
+        <li>Make sure the application is running on localhost:3000</li>
+        <li>Click the links above to test different XSS payloads</li>
+        <li>Toggle between vulnerable and secure modes to see the difference</li>
+        <li>Check the execution logs on the page</li>
+    </ol>
+</body>
+</html>
