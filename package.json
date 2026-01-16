@@ -11,11 +11,18 @@
     "build": "cd client && npm run build",
     "build:all": "npm install && cd server && npm install && cd ../client && npm install && npm run build"
   },
-  "keywords": ["xss", "security", "vulnerability", "assessment"],
+  "keywords": [
+    "xss",
+    "security",
+    "vulnerability",
+    "assessment"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "mongodb": "^7.0.0"
   }
 }
-
